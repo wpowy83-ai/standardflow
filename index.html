@@ -1214,7 +1214,104 @@
         section {
             animation: slideInUp 0.6s ease-out;
         }
-    /* Os atributos width/height do HTML travam a altura; sem height:auto a imagem estica. */ img { height: auto; } /* Imagens 700x1050 ao lado de texto bem mais curto: recorte 4:3 iguala as alturas. */ .solution-visual img, .transform-visual img { aspect-ratio: 4 / 3; object-fit: cover; } .solution-visual img { object-position: center 28%; } </style>
+    /* Os atributos width/height do HTML travam a altura; sem height:auto a imagem estica. */ img { height: auto; } /* Imagens 700x1050 ao lado de texto bem mais curto: recorte 4:3 iguala as alturas. */ .solution-visual img, .transform-visual img { aspect-ratio: 4 / 3; object-fit: cover; } .solution-visual img { object-position: center 28%; } 
+        /* Celular: sem padding duplo (section + .container) e sem cards mais largos que a tela */
+        @media (max-width: 768px) {
+            section[class] { padding-left: 1rem; padding-right: 1rem; }
+            .container { padding-left: 0; padding-right: 0; }
+            .apps-grid, .pricing-grid { grid-template-columns: 1fr; }
+        }
+
+        /* Rodapé: dados da empresa e links legais */
+        .footer-empresa { margin-top: 0.75rem; font-size: 0.85rem; line-height: 1.7; }
+        .footer-empresa strong { color: #fff; }
+        .footer-links { margin-top: 0.75rem; font-size: 0.85rem; display: flex; gap: 1.25rem; justify-content: center; flex-wrap: wrap; }
+        .footer-links a, .footer-links button { color: #aaa; background: none; border: 0; padding: 0; font: inherit; cursor: pointer; text-decoration: underline; }
+        .footer-links a:hover, .footer-links button:hover { color: #fff; }
+
+        /* Aviso de cookies: só aparece quando houver alguma tag configurada em SF_TAGS */
+        .cookie-banner { position: fixed; left: 1rem; right: 1rem; bottom: 1rem; max-width: 560px; margin: 0 auto; background: #fff; color: #1a1a1a; border-radius: 12px; box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2); padding: 1.25rem; z-index: 1001; font-size: 0.9rem; line-height: 1.5; }
+        .cookie-banner[hidden] { display: none; }
+        .cookie-banner p { margin-bottom: 1rem; }
+        .cookie-banner a { color: #667eea; }
+        .cookie-actions { display: flex; gap: 0.75rem; flex-wrap: wrap; }
+        .cookie-actions button { flex: 1 1 140px; padding: 0.75rem 1rem; border-radius: 8px; border: 2px solid #667eea; background: #667eea; color: #fff; font-weight: 600; font-size: 0.9rem; cursor: pointer; }
+
+        /* Confirmação do formulário (substitui o alert) */
+        .form-status { margin-top: 1rem; padding: 0.9rem 1rem; border-radius: 8px; text-align: center; font-weight: 600; line-height: 1.5; }
+        .form-status.ok { background: #d1fae5; color: #065f46; }
+        .form-status.erro { background: #fee2e2; color: #7f1d1d; }
+    </style>
+    <!-- Rastreamento de anúncios com consentimento (LGPD).
+         Preencha os IDs quando criar as contas. Enquanto estiverem vazios,
+         nenhuma tag carrega e o aviso de cookies não aparece. -->
+    <script>
+        window.SF_TAGS = {
+            ga4: '',            // Google Analytics 4, ex.: 'G-XXXXXXXXXX'
+            googleAds: '',      // Google Ads, ex.: 'AW-123456789'
+            googleAdsLead: '',  // rótulo da conversão de lead no Google Ads, ex.: 'AbCdEfGhIj'
+            metaPixel: ''       // Pixel da Meta, ex.: '123456789012345'
+        };
+        (function () {
+            var T = window.SF_TAGS, CHAVE = 'sf_consentimento';
+            var temTag = !!(T.ga4 || T.googleAds || T.metaPixel);
+            var carregado = false;
+            window.dataLayer = window.dataLayer || [];
+            window.gtag = window.gtag || function () { dataLayer.push(arguments); };
+            function ler() { try { return localStorage.getItem(CHAVE); } catch (e) { return null; } }
+            function gravar(v) { try { localStorage.setItem(CHAVE, v); } catch (e) {} }
+            function carregar() {
+                if (carregado || !temTag) return;
+                carregado = true;
+                var idGoogle = T.ga4 || T.googleAds;
+                if (idGoogle) {
+                    var g = document.createElement('script');
+                    g.async = true;
+                    g.src = 'https://www.googletagmanager.com/gtag/js?id=' + idGoogle;
+                    document.head.appendChild(g);
+                    gtag('js', new Date());
+                    if (T.ga4) gtag('config', T.ga4);
+                    if (T.googleAds) gtag('config', T.googleAds);
+                }
+                if (T.metaPixel) {
+                    !function (f, b, e, v, n, t, s) { if (f.fbq) return; n = f.fbq = function () { n.callMethod ? n.callMethod.apply(n, arguments) : n.queue.push(arguments); }; if (!f._fbq) f._fbq = n; n.push = n; n.loaded = !0; n.version = '2.0'; n.queue = []; t = b.createElement(e); t.async = !0; t.src = v; s = b.getElementsByTagName(e)[0]; s.parentNode.insertBefore(t, s); }(window, document, 'script', 'https://connect.facebook.net/en_US/fbevents.js');
+                    fbq('init', T.metaPixel);
+                    fbq('track', 'PageView');
+                }
+            }
+            function banner(mostrar) { var b = document.getElementById('cookie-banner'); if (b) b.hidden = !mostrar; }
+            // Conversões: disparadas pelo formulário e pelos links de WhatsApp.
+            window.sfConversao = function (tipo, origem) {
+                if (!carregado) return;
+                if (tipo === 'lead') {
+                    gtag('event', 'generate_lead', { method: 'formulario' });
+                    if (T.googleAds && T.googleAdsLead) gtag('event', 'conversion', { send_to: T.googleAds + '/' + T.googleAdsLead });
+                    if (window.fbq) fbq('track', 'Lead');
+                } else if (tipo === 'whatsapp') {
+                    gtag('event', 'contato_whatsapp', { origem: origem || 'outro' });
+                    if (window.fbq) fbq('track', 'Contact');
+                }
+            };
+            window.sfConsentir = function (aceitou) {
+                gravar(aceitou ? 'aceito' : 'recusado');
+                banner(false);
+                if (aceitou) carregar(); else if (carregado) location.reload();
+            };
+            window.sfAbrirCookies = function () { banner(true); };
+            document.addEventListener('DOMContentLoaded', function () {
+                var preferencias = document.getElementById('cookie-preferencias');
+                if (!temTag) { if (preferencias) preferencias.remove(); return; }
+                var escolha = ler();
+                if (escolha === 'aceito') carregar();
+                else if (escolha !== 'recusado') banner(true);
+            });
+            document.addEventListener('click', function (e) {
+                var a = e.target.closest && e.target.closest('a[href*="wa.me/"]');
+                if (!a) return;
+                window.sfConversao('whatsapp', a.closest('.pricing-card') ? 'plano' : a.closest('.whatsapp-menu') ? 'menu' : 'outro');
+            }, true);
+        })();
+    </script>
 </head>
 <body>
     <!-- Header -->
@@ -1404,7 +1501,7 @@
                         <li>✓ Treinamento (4h)</li>
                         <li>✓ Suporte 1 mês</li>
                     </ul>
-                    <a href="https://wa.me/12997044683?text=Olá! Tenho interesse no plano Starter do StandardFlow." target="_blank" class="btn btn-primary" style="width: 100%; margin-top: auto; text-decoration: none; text-align: center; display: inline-block;">Começar Agora</a>
+                    <a href="https://wa.me/5512997044683?text=Olá! Tenho interesse no plano Starter do StandardFlow." target="_blank" class="btn btn-primary" style="width: 100%; margin-top: auto; text-decoration: none; text-align: center; display: inline-block;">Começar Agora</a>
                 </div>
 
                 <!-- Professional -->
@@ -1430,7 +1527,7 @@
                         <li>✓ Treinamento (8h)</li>
                         <li>✓ Suporte 3 meses</li>
                     </ul>
-                    <a href="https://wa.me/12997044683?text=Olá! Tenho interesse no plano Professional do StandardFlow." target="_blank" class="btn btn-primary" style="width: 100%; margin-top: auto; text-decoration: none; text-align: center; display: inline-block;">Começar Agora</a>
+                    <a href="https://wa.me/5512997044683?text=Olá! Tenho interesse no plano Professional do StandardFlow." target="_blank" class="btn btn-primary" style="width: 100%; margin-top: auto; text-decoration: none; text-align: center; display: inline-block;">Começar Agora</a>
                 </div>
 
                 <!-- Enterprise -->
@@ -1449,7 +1546,7 @@
                         <li>✓ Suporte 24/7</li>
                         <li>✓ Automações ilimitadas</li>
                     </ul>
-                    <a href="https://wa.me/12997044683?text=Olá! Gostaria de solicitar uma proposta do plano Enterprise do StandardFlow." target="_blank" class="btn btn-primary" style="width: 100%; margin-top: auto; text-decoration: none; text-align: center; display: inline-block;">Solicitar Proposta</a>
+                    <a href="https://wa.me/5512997044683?text=Olá! Gostaria de solicitar uma proposta do plano Enterprise do StandardFlow." target="_blank" class="btn btn-primary" style="width: 100%; margin-top: auto; text-decoration: none; text-align: center; display: inline-block;">Solicitar Proposta</a>
                 </div>
             </div>
         </div>
@@ -1508,18 +1605,32 @@
             <img src="symbol-b-mark.svg" alt="" width="16" height="16" style="opacity:0.6;">
             &copy; 2026 StandardFlow. Transformando documentos em eficiência.
         </p>
+        <p class="footer-empresa"><strong>MELIGOR ESPAÇOS E GESTÃO LTDA</strong><br>CNPJ 40.812.946/0001-77 · São Paulo - SP</p>
+        <p class="footer-links">
+            <a href="/privacidade.html">Política de Privacidade</a>
+            <button type="button" id="cookie-preferencias" onclick="sfAbrirCookies()">Preferências de cookies</button>
+        </p>
     </footer>
+
+    <!-- Aviso de cookies (LGPD) -->
+    <div id="cookie-banner" class="cookie-banner" role="dialog" aria-label="Aviso de cookies" hidden>
+        <p>Usamos cookies de medição e de publicidade para saber quais anúncios trazem visitantes e melhorar nossas campanhas. Eles só são ativados se você aceitar. <a href="/privacidade.html">Política de Privacidade</a></p>
+        <div class="cookie-actions">
+            <button type="button" onclick="sfConsentir(false)">Recusar</button>
+            <button type="button" onclick="sfConsentir(true)">Aceitar</button>
+        </div>
+    </div>
 
     <!-- WhatsApp Floating Menu -->
     <div id="whatsapp-menu" class="whatsapp-menu">
         <div class="whatsapp-options">
             <div class="whatsapp-option">
                 <span class="option-label">Agendar Demo</span>
-                <a href="https://wa.me/12997044683?text=Olá! Gostaria de agendar uma demonstração." target="_blank">💬</a>
+                <a href="https://wa.me/5512997044683?text=Olá! Gostaria de agendar uma demonstração." target="_blank">💬</a>
             </div>
             <div class="whatsapp-option">
                 <span class="option-label">Dúvidas</span>
-                <a href="https://wa.me/12997044683?text=Olá! Tenho dúvidas sobre o StandardFlow." target="_blank">❓</a>
+                <a href="https://wa.me/5512997044683?text=Olá! Tenho dúvidas sobre o StandardFlow." target="_blank">❓</a>
             </div>
         </div>
         <button id="whatsapp-toggle" class="whatsapp-button" onclick="toggleWhatsappMenu()">📱</button>
@@ -1546,6 +1657,17 @@
             if (element) {
                 element.scrollIntoView({ behavior: 'smooth' });
             }
+        }
+
+        function sfStatus(form, tipo, texto) {
+            let el = form.querySelector('.form-status');
+            if (!el) {
+                el = document.createElement('div');
+                el.setAttribute('role', 'status');
+                form.appendChild(el);
+            }
+            el.className = 'form-status ' + tipo;
+            el.textContent = texto;
         }
 
         function handleSubmit(event) {
@@ -1576,12 +1698,14 @@
                 })
             })
             .then(response => response.json())
-            .then(() => {
-                alert(`Obrigado, ${name}! Recebemos seus dados e entraremos em contato em ${email} em breve.`);
+            .then(data => {
+                if (data && (data.success === false || data.success === 'false')) throw new Error('envio recusado');
+                sfStatus(form, 'ok', `Obrigado, ${name}! Recebemos seus dados e vamos falar com você em ${email} em breve.`);
+                if (window.sfConversao) sfConversao('lead');
                 form.reset();
             })
             .catch(() => {
-                alert('Não conseguimos enviar agora. Fale com a gente pelo WhatsApp: (12) 99704-4683');
+                sfStatus(form, 'erro', 'Não conseguimos enviar agora. Fale com a gente pelo WhatsApp: (12) 99704-4683.');
             })
             .finally(() => {
                 submitBtn.textContent = originalText;
